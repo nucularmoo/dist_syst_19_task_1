@@ -8,17 +8,17 @@ const readline = require('readline').createInterface({
 
 const app = express();
 app.use(express.json());
-const IP = process.env.IP|| "127.0.0.1";
-const PORT = process.env.PORT || 3000;
+const IP = process.env.IP|| '127.0.0.1';
+const PORT = process.env.PORT || '3000';
 // generate the guid that we'll be using for identification of users
 const GUID = uuidv1();
-const CONNECT_TO = process.env.CONNECT_TO || "127.0.0.1:3000";
-const NAME = process.env.NAME || "bob";
+const CONNECT_TO = process.env.CONNECT_TO || '127.0.0.1:3000';
+const NAME = process.env.NAME || 'bob';
 
-let clients = [
+const clients = [
 ];
 
-let scores = [
+const scores = [
 ];
 
 // default endpoint
@@ -43,6 +43,7 @@ app.post('/connect', (req, res) => {
 app.post('/disconnect', (req, res) => {
   const guid = req.body.guid;
   clients = clients.filter(c => c.guid != guid);
+  console.log(`Received a notification of disconnection from: ${guid}`);
   console.log(clients);
   res.send('ok');
 });
@@ -117,7 +118,7 @@ function connect(ip, port) {
     // make all the other clients know us
     response.data.forEach(c => {
       const payload = {ip: IP, port: PORT, guid: GUID, name: NAME};
-      const urlConnect = `http://${ip}:${port}/connect`;
+      const urlConnect = `http://${c.ip}:${c.port}/connect`;
       axios.post(urlConnect, payload).then((response) => {
         //console.log(response);
       });
