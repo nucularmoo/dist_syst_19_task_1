@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/nucularmoo/dist_syst_19_task_1/issues"
   },
-  "homepage": "https://github.com/nucularmoo/dist_syst_19_task_1#readme"
+  "homepage": "https://github.com/nucularmoo/dist_syst_19_task_1#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "uuid": "^3.3.3"
+  }
 }
