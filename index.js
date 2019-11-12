@@ -1,5 +1,6 @@
 const uuidv1 = require('uuid/v1');
 const express = require('express');
+const axios = require('axios').default;
 const readline = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -7,26 +8,17 @@ const readline = require('readline').createInterface({
 
 const app = express();
 app.use(express.json());
-const port = 3000;
-// generate the guid we'll be using for identification of users
-const CLIENT_ID = uuidv1();
+const IP = process.env.IP|| "127.0.0.1";
+const PORT = process.env.PORT || 3000;
+// generate the guid that we'll be using for identification of users
+const GUID = uuidv1();
+const CONNECT_TO = process.env.CONNECT_TO || "127.0.0.1:3000";
+const NAME = process.env.NAME || "bob";
 
 let clients = [
-  {
-    'ip': '127.0.0.1',
-    'port': '3000',
-    'guid': 'dfghhhs-asdffadsfasd-dfsadfsffds-adfsdafsdf',
-    'name': 'bob',
-  },
 ];
 
 let scores = [
-  {
-    'guid': 'dfghhhs-asdffadsfasd-dfsadfsffds-adfsdafsdf',
-    'name': 'bob',
-    'timestamp': '2019-11-11T12:45',
-    'score': "20",
-  },
 ];
 
 // default endpoint
@@ -41,17 +33,7 @@ app.post('/connect', (req, res) => {
   const guid = req.body.guid;
   const name = req.body.name;
 
-  const player = {
-    ip,
-    port,
-    guid,
-    name,
-  };
-
-  clients.push(player);
-
-  console.log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
-  console.log(clients);
+  addPlayer(ip, port, guid, name);
 
   res.send('ok');
 });
@@ -104,23 +86,86 @@ app.get('/status', (req, res) => res.send('ok'));
 // out: clients, scores
 app.get('/debug/state', (req, res) => res.json({clients, scores}));
 
-app.listen(port, () =>
-  readline.question('give name', (name) => {
-    console.log(`Hi ${name}!`);
-    // input player name
+function addPlayer(ip, port, guid, name) {
+  const player = {
+    ip,
+    port,
+    guid,
+    name,
+  };
 
-    // connect and listen (give one player ip)
-    // send name and guid if connecting (register, connect)
-    // receive initial client list from the player we connected to
+  clients.push(player);
 
-    // keep track of scores in the background
+  console.log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
+  console.log(clients);
+}
 
-    // play
+function connect(ip, port) {
+  console.log(`Connecting to ${ip}:${port}`);
+  // get the client list so we can join them
+  const urlClients = `http://${ip}:${port}/clients`;
+  axios.get(urlClients).then((response) => {
+    console.log(response.data);
 
-    // send scores to all clients
-    // show score status
-    // keep playing
-    // disconnect, notify clients
+    // we need to add ourselves to the client list here so we can get
+    // the messages too. this is stupid but that's how it is.
+    addPlayer(IP, PORT, GUID, NAME);
+
+    // add all the new clients to our list of clients
+    response.data.forEach(c => clients.push(c));
+
+    // make all the other clients know us
+    response.data.forEach(c => {
+      const payload = {ip: IP, port: PORT, guid: GUID, name: NAME};
+      const urlConnect = `http://${ip}:${port}/connect`;
+      axios.post(urlConnect, payload).then((response) => {
+        //console.log(response);
+      });
+    });
+  });
+}
+
+function disconnect() {
+  console.log(`Disconnecting`);
+  clients.forEach(c => {
+    const payload = {guid: GUID};
+    const url = `http://${c.ip}:${c.port}/disconnect`;
+    axios.post(url, payload).then((response) => {
+      //console.log(response);
+    });
+  });
+}
+
+function sendScore(score) {
+  clients.forEach(c => {
+    console.log(`Sending score to ${c.ip}:${c.port}`);
+    const payload = {guid: GUID, name: NAME, timestamp: new Date().toISOString(), score};
+    const url = `http://${c.ip}:${c.port}/score`;
+    axios.post(url, payload).then((response) => {
+      //console.log(response);
+    });
+  });
+}
+
+app.listen(PORT, () => {
+  const ip = CONNECT_TO.split(':')[0];
+  const port = CONNECT_TO.split(':')[1];
+  connect(ip, port);
+
+  readline.question('> ', (command) => {
+    console.log(command);
+    switch (command) {
+    case 'score':
+      const score = Math.floor((Math.random() * 20) + 1);
+      sendScore(score);
+      break;
+    case 'disconnect':
+      disconnect();
+      break;
+    default:
+      break;
+    }
+
     readline.close();
-  })
-);
+  });
+});
