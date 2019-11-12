@@ -15,10 +15,10 @@ const GUID = uuidv1();
 const CONNECT_TO = process.env.CONNECT_TO || '127.0.0.1:3000';
 const NAME = process.env.NAME || 'bob';
 
-const clients = [
+let clients = [
 ];
 
-const scores = [
+let scores = [
 ];
 
 // default endpoint
@@ -43,8 +43,7 @@ app.post('/connect', (req, res) => {
 app.post('/disconnect', (req, res) => {
   const guid = req.body.guid;
   clients = clients.filter(c => c.guid != guid);
-  console.log(`Received a notification of disconnection from: ${guid}`);
-  console.log(clients);
+  console.log(`Received a notification of disconnecting from: ${guid}`);
   res.send('ok');
 });
 
@@ -98,16 +97,14 @@ function addPlayer(ip, port, guid, name) {
   clients.push(player);
 
   console.log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
-  console.log(clients);
 }
 
 function connect(ip, port) {
   console.log(`Connecting to ${ip}:${port}`);
+
   // get the client list so we can join them
   const urlClients = `http://${ip}:${port}/clients`;
   axios.get(urlClients).then((response) => {
-    console.log(response.data);
-
     // we need to add ourselves to the client list here so we can get
     // the messages too. this is stupid but that's how it is.
     addPlayer(IP, PORT, GUID, NAME);
@@ -119,21 +116,17 @@ function connect(ip, port) {
     response.data.forEach(c => {
       const payload = {ip: IP, port: PORT, guid: GUID, name: NAME};
       const urlConnect = `http://${c.ip}:${c.port}/connect`;
-      axios.post(urlConnect, payload).then((response) => {
-        //console.log(response);
-      });
+      axios.post(urlConnect, payload);
     });
   });
 }
 
 function disconnect() {
-  console.log(`Disconnecting`);
   clients.forEach(c => {
+    console.log(`Sending a notification of disconnecting to ${c.ip}:${c.port}`);
     const payload = {guid: GUID};
     const url = `http://${c.ip}:${c.port}/disconnect`;
-    axios.post(url, payload).then((response) => {
-      //console.log(response);
-    });
+    axios.post(url, payload);
   });
 }
 
@@ -142,9 +135,7 @@ function sendScore(score) {
     console.log(`Sending score to ${c.ip}:${c.port}`);
     const payload = {guid: GUID, name: NAME, timestamp: new Date().toISOString(), score};
     const url = `http://${c.ip}:${c.port}/score`;
-    axios.post(url, payload).then((response) => {
-      //console.log(response);
-    });
+    axios.post(url, payload);
   });
 }
 
@@ -154,7 +145,6 @@ app.listen(PORT, () => {
   connect(ip, port);
 
   readline.question('> ', (command) => {
-    console.log(command);
     switch (command) {
     case 'score':
       const score = Math.floor((Math.random() * 20) + 1);
