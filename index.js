@@ -155,6 +155,40 @@ function sendScore(score) {
     const payload = {guid: GUID, name: NAME, timestamp: new Date().toISOString(), score};
     const url = `http://${c.ip}:${c.port}/score`;
     axios.post(url, payload);
+}
+
+function testMessaging() {
+  if (clients.length == 0) {
+    console.log(`No clients connected`);
+    return;
+  }
+  let timesSum = 0;
+  let successfulRequests = 0;
+  function finalCallback() {
+    console.log(`Average request time: ${timesSum/successfulRequests} ms`);
+  }
+  promise = new Promise((resolve, reject) => {
+    const url = `http://${clients[0].ip}:${clients[0].port}/score`;
+    const payload = {test: "TESTING"};
+    [...Array(40).keys()].forEach((item, index, array) => {
+      const startTime = Date.now();
+      axios.post(url, payload).then(() => {
+        const endTime = Date.now();
+        const timeDelta = endTime - startTime;
+        resolve(timeDelta);
+        if (index == array.length - 1) {
+          finalCallback();
+        }
+      }).catch(() => {
+        reject();
+      });
+    });
+  });
+  promise.then((time) => {
+    timesSum += time;
+    successfulRequests++;
+  }).catch((error) => {
+      console.log(`Got error: ${error}`);
   });
 }
 
@@ -171,6 +205,9 @@ app.listen(PORT, () => {
       break;
     case 'disconnect':
       disconnect();
+      break;
+    case 'test':
+      testMessaging();
       break;
     default:
       break;
