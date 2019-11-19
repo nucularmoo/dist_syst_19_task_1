@@ -22,8 +22,6 @@ The system updates the score whenever a new player joins. Otherwise there is no 
 
 ![chart 2](unknown2.png)
 
-When joining the game,
-
 When disconnecting from the game, the client sends the disconnect to the disconnecting client, as well as the others.
 
 ### Problems encountered, lessons learned
