@@ -155,7 +155,7 @@ function sendScore(score) {
     const payload = {guid: GUID, name: NAME, timestamp: new Date().toISOString(), score};
     const url = `http://${c.ip}:${c.port}/score`;
     axios.post(url, payload);
-  }
+  });
 }
 
 async function testMessaging() {
@@ -184,6 +184,13 @@ async function testMessaging() {
   console.log(`Average request time: ${timesSum/successfulRequests} ms`);
 }
 
+function playGame() {
+  const die1 = Math.floor(Math.random() * 6) + 1;
+  const die2 = Math.floor(Math.random() * 6) + 1;
+  console.log(`You rolled ${die1} and ${die2}`);
+  return die1 + die2;
+}
+
 app.listen(PORT, () => {
   const ip = CONNECT_TO.split(':')[0];
   const port = CONNECT_TO.split(':')[1];
@@ -192,7 +199,7 @@ app.listen(PORT, () => {
   readline.question('> ', (command) => {
     switch (command) {
     case 'score':
-      const score = Math.floor((Math.random() * 20) + 1);
+      const score = playGame();
       sendScore(score);
       break;
     case 'disconnect':
@@ -204,7 +211,6 @@ app.listen(PORT, () => {
     default:
       break;
     }
-
     readline.close();
   });
 });
