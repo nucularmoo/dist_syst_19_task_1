@@ -12,6 +12,20 @@ The best way to enjoy our adrenaline-packed competitive experience is to play it
 
 The system has been designed to be symmetric, which means that we do not have separate code for both server and client. All the clients will be using the same code, creating only one kind of instances.
 
+To connect to a game, the player needs to know the IP and port of one other player, for this known player to forward the information about the network to the joining player.
+
+When connecting to the game, the client receives the list of clients and scores from another client. After having received the score and the client list, the client registers with the other clients based on the list of clients. The client registers using IP address, port, name and ID. This will allow for the existing clients to add the information of the new player to their list of clients who are currently participating in the game.
+
+The system updates the score whenever a new player joins. Otherwise there is no synchronization regarding the score tally.
+
+![chart 1](unknown.png)
+
+![chart 2](unknown2.png)
+
+When joining the game,
+
+When disconnecting from the game, the client sends the disconnect to the disconnecting client, as well as the others.
+
 ### Problems encountered, lessons learned
 
 We are aware of the fickleness of users, and are aware that we cannot expect the user will behave as we have expected the user to behave. For example, our system is suspectible to the user force closing the application, instead of using the "disconnect" option in the application. This will have implications regarding the monitoring of the score in the state of the system.
