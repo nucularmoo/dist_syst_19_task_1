@@ -127,6 +127,7 @@ function connect(ip, port) {
   axios.get(urlClients).then((response) => {
     // we need to add ourselves to the client list here so we can get
     // the messages too. this is stupid but that's how it is.
+    log(`Connected`);
     addPlayer(IP, PORT, GUID, NAME);
 
     // add all the new clients to our list of clients
@@ -134,6 +135,7 @@ function connect(ip, port) {
 
     // get the scores the other client has
     axios.get(urlScores).then((response) => {
+      log(`Got scores`);
       scores = response.data;
     });
 
@@ -141,6 +143,7 @@ function connect(ip, port) {
     response.data.forEach(c => {
       const payload = {ip: IP, port: PORT, guid: GUID, name: NAME};
       const urlConnect = `http://${c.ip}:${c.port}/connect`;
+      log(`Registering ourselves to ${c.ip}:${c.port}`);
       axios.post(urlConnect, payload);
     });
   });
