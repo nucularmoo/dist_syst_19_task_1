@@ -45,7 +45,7 @@ See the README.md in the root directory
 ### Implementation questions
 
 1. *What is the average time for sending 50 messages between two nodes?*
-2.7 ms when simulating the system on a local network. If the system would be run on a real network, time would grow by 10-80 ms per request depending on the internet service.
+2.7 ms when simulating the system on a local network. If the system would be run on a real network, time would grow by 10-80 ms per request depending on the internet service and distance of the nodes on the network.
 
 2. *What is the average time for sending 25 messages?*
 Small payload: 2.7 ms
