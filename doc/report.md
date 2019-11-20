@@ -45,10 +45,17 @@ See the README.md in the root directory
 ### Implementation questions
 
 1. *What is the average time for sending 50 messages between two nodes?*
+2.7 ms
 
 2. *What is the average time for sending 25 messages?*
+Small payload: 2.7 ms
+Average payload: 2.46 ms
+Large payload: 2.8 ms
+In practice, the sizes of the payloads that the program uses do not affect the message time.
 
 3. *For a unique payload, measure the inter arrival rate between messages*
+1/2.7 = 0.37 ms
+
 
 4. *How reliable is the architecture? What kind of applications can benefit from this architectural flavor?*
 
