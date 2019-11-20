@@ -123,6 +123,7 @@ function connect(ip, port) {
 
   // get the client list so we can join them
   const urlClients = `http://${ip}:${port}/clients`;
+  const urlScores = `http://${ip}:${port}/scores`;
   axios.get(urlClients).then((response) => {
     // we need to add ourselves to the client list here so we can get
     // the messages too. this is stupid but that's how it is.
@@ -130,6 +131,11 @@ function connect(ip, port) {
 
     // add all the new clients to our list of clients
     response.data.forEach(c => clients.push(c));
+
+    // get the scores the other client has
+    axios.get(urlScores).then((response) => {
+      scores = response.data;
+    });
 
     // make all the other clients know us
     response.data.forEach(c => {
