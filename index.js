@@ -158,6 +158,39 @@ function sendScore(score) {
   });
 }
 
+async function testMessaging() {
+  if (clients.length == 0) {
+    console.log(`No clients connected`);
+    return;
+  }
+  let timesSum = 0;
+  let successfulRequests = 0;
+  function callback(time) {
+    timesSum += time;
+    successfulRequests++;
+  };
+  async function testRequests(callback) {
+    const url = `http://${clients[0].ip}:${clients[0].port}/score`;
+    const payload = {test: "TESTING"};
+    for (let i = 0; i < 40; i++) {
+      const startTime = Date.now();
+      await axios.post(url, payload);
+      const endTime = Date.now();
+      const timeDelta = endTime - startTime;
+      callback(timeDelta);
+    }
+  };
+  await testRequests(callback);
+  console.log(`Average request time: ${timesSum/successfulRequests} ms`);
+}
+
+function playGame() {
+  const die1 = Math.floor(Math.random() * 6) + 1;
+  const die2 = Math.floor(Math.random() * 6) + 1;
+  console.log(`You rolled ${die1} and ${die2}`);
+  return die1 + die2;
+}
+
 app.listen(PORT, () => {
   const ip = CONNECT_TO.split(':')[0];
   const port = CONNECT_TO.split(':')[1];
@@ -166,16 +199,18 @@ app.listen(PORT, () => {
   readline.question('> ', (command) => {
     switch (command) {
     case 'score':
-      const score = Math.floor((Math.random() * 20) + 1);
+      const score = playGame();
       sendScore(score);
       break;
     case 'disconnect':
       disconnect();
       break;
+    case 'test':
+      testMessaging();
+      break;
     default:
       break;
     }
-
     readline.close();
   });
 });
