@@ -14,11 +14,15 @@ const PORT = process.env.PORT || '3000';
 const GUID = uuidv1();
 const CONNECT_TO = process.env.CONNECT_TO || '127.0.0.1:3000';
 const NAME = process.env.NAME || 'bob';
+const DEBUG = process.env.DEBUG === 'true' || false;
 
 let clients = [
 ];
 
 let scores = [
+];
+
+const logs = [
 ];
 
 // default endpoint
@@ -43,7 +47,7 @@ app.post('/connect', (req, res) => {
 app.post('/disconnect', (req, res) => {
   const guid = req.body.guid;
   clients = clients.filter(c => c.guid != guid);
-  console.log(`Received a notification of disconnecting from: ${guid}`);
+  log(`Received a notification of disconnecting from: ${guid}`);
   res.send('ok');
 });
 
@@ -65,7 +69,7 @@ app.post('/score', (req, res) => {
 
   scores.push(scoreThing);
 
-  console.log(`Got a new score from ${scoreThing.name} (${scoreThing.guid}): ${scoreThing.score} at ${scoreThing.timestamp}`);
+  log(`Got a new score from ${scoreThing.name} (${scoreThing.guid}): ${scoreThing.score} at ${scoreThing.timestamp}`);
 
   res.send('ok');
 });
@@ -86,6 +90,21 @@ app.get('/status', (req, res) => res.send('ok'));
 // out: clients, scores
 app.get('/debug/state', (req, res) => res.json({clients, scores}));
 
+// for debug purposes
+// out: logs of actions
+app.get('/debug/logs', (req, res) => res.json({logs}));
+
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const logg = `[${timestamp}] ${message}`;
+
+    if (DEBUG) {
+        console.log(logg);
+    }
+
+    logs.push(logg);
+}
+
 function addPlayer(ip, port, guid, name) {
   const player = {
     ip,
@@ -96,11 +115,11 @@ function addPlayer(ip, port, guid, name) {
 
   clients.push(player);
 
-  console.log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
+  log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
 }
 
 function connect(ip, port) {
-  console.log(`Connecting to ${ip}:${port}`);
+  log(`Connecting to ${ip}:${port}`);
 
   // get the client list so we can join them
   const urlClients = `http://${ip}:${port}/clients`;
@@ -123,7 +142,7 @@ function connect(ip, port) {
 
 function disconnect() {
   clients.forEach(c => {
-    console.log(`Sending a notification of disconnecting to ${c.ip}:${c.port}`);
+    log(`Sending a notification of disconnecting to ${c.ip}:${c.port}`);
     const payload = {guid: GUID};
     const url = `http://${c.ip}:${c.port}/disconnect`;
     axios.post(url, payload);
@@ -156,6 +175,48 @@ async function testMessaging() {
   console.log(`Average request time: ${timesSum/successfulRequests} ms`);
 }
 
+function sendScore(score) {
+  clients.forEach(c => {
+    log(`Sending score to ${c.ip}:${c.port}`);
+    const payload = {guid: GUID, name: NAME, timestamp: new Date().toISOString(), score};
+    const url = `http://${c.ip}:${c.port}/score`;
+    axios.post(url, payload);
+  });
+}
+
+async function testMessaging() {
+  if (clients.length == 0) {
+    console.log(`No clients connected`);
+    return;
+  }
+  let timesSum = 0;
+  let successfulRequests = 0;
+  function callback(time) {
+    timesSum += time;
+    successfulRequests++;
+  };
+  async function testRequests(callback) {
+    const url = `http://${clients[0].ip}:${clients[0].port}/score`;
+    const payload = {test: "TESTING"};
+    for (let i = 0; i < 40; i++) {
+      const startTime = Date.now();
+      await axios.post(url, payload);
+      const endTime = Date.now();
+      const timeDelta = endTime - startTime;
+      callback(timeDelta);
+    }
+  };
+  await testRequests(callback);
+  console.log(`Average request time: ${timesSum/successfulRequests} ms`);
+}
+
+function playGame() {
+  const die1 = Math.floor(Math.random() * 6) + 1;
+  const die2 = Math.floor(Math.random() * 6) + 1;
+  console.log(`You rolled ${die1} and ${die2}`);
+  return die1 + die2;
+}
+
 app.listen(PORT, () => {
   const ip = CONNECT_TO.split(':')[0];
   const port = CONNECT_TO.split(':')[1];
@@ -164,7 +225,7 @@ app.listen(PORT, () => {
   readline.question('> ', (command) => {
     switch (command) {
     case 'score':
-      const score = Math.floor((Math.random() * 20) + 1);
+      const score = playGame();
       sendScore(score);
       break;
     case 'disconnect':
@@ -176,7 +237,6 @@ app.listen(PORT, () => {
     default:
       break;
     }
-
     readline.close();
   });
 });
