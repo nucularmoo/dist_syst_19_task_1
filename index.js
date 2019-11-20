@@ -149,6 +149,35 @@ function disconnect() {
   });
 }
 
+async function testMessaging(size) {
+  if (clients.length == 0) {
+    console.log(`No clients connected`);
+    return;
+  }
+  let timesSum = 0;
+  let successfulRequests = 0;
+  function callback(time) {
+    timesSum += time;
+    successfulRequests++;
+  };
+  async function testRequests(callback) {
+    const url = `http://${clients[0].ip}:${clients[0].port}/score`;
+    const payloadSmall = {test: "TESTING"};
+    const payloadAvg = {test: "TESTING", size: "medium"};
+    const payloadBig = {test: "TESTING", size: "medium", isBiggest: "yes"};
+    const payload = (size == "min" ? payloadSmall : (size == "avg" ? payloadAvg : payloadBig));
+    for (let i = 0; i < 50; i++) {
+      const startTime = Date.now();
+      await axios.post(url, payload);
+      const endTime = Date.now();
+      const timeDelta = endTime - startTime;
+      callback(timeDelta);
+    }
+  };
+  await testRequests(callback);
+  console.log(`Average request time: ${timesSum/successfulRequests} ms`);
+}
+
 function sendScore(score) {
   clients.forEach(c => {
     log(`Sending score to ${c.ip}:${c.port}`);
@@ -205,8 +234,14 @@ app.listen(PORT, () => {
     case 'disconnect':
       disconnect();
       break;
-    case 'test':
-      testMessaging();
+    case 'tests':
+      testMessaging("min");
+      break;
+    case 'testa':
+      testMessaging("avg");
+      break;
+    case 'testb':
+      testMessaging("max");
       break;
     default:
       break;
