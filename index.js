@@ -220,19 +220,19 @@ function playGame() {
   return die1 + die2;
 }
 
-app.listen(PORT, () => {
-  const ip = CONNECT_TO.split(':')[0];
-  const port = CONNECT_TO.split(':')[1];
-  connect(ip, port);
-
-  readline.question('> ', (command) => {
+function main() {
+  readline.question('> ', function (command) {
     switch (command) {
-    case 'score':
+    case 'play':
       const score = playGame();
       sendScore(score);
       break;
     case 'disconnect':
       disconnect();
+      break;
+    case 'quit':
+      disconnect();
+      process.exit();
       break;
     case 'tests':
       testMessaging("min");
@@ -246,6 +246,15 @@ app.listen(PORT, () => {
     default:
       break;
     }
-    readline.close();
+
+    main();
   });
+};
+
+app.listen(PORT, () => {
+  const ip = CONNECT_TO.split(':')[0];
+  const port = CONNECT_TO.split(':')[1];
+  connect(ip, port);
+
+  main();
 });
