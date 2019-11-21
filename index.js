@@ -271,15 +271,16 @@ function main() {
       process.exit();
       break;
     case 'tests':
-      testMessaging("min");
+      testMessaging('min');
       break;
     case 'testa':
-      testMessaging("avg");
+      testMessaging('avg');
       break;
     case 'testb':
-      testMessaging("max");
+      testMessaging('max');
       break;
     default:
+      console.log('Unknown command. Please try: play, scores, players, logs, disconnect, quit, tests, testa, or testb.');
       break;
     }
 
