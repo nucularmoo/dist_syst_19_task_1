@@ -94,6 +94,7 @@ app.get('/debug/state', (req, res) => res.json({clients, scores}));
 // out: logs of actions
 app.get('/debug/logs', (req, res) => res.json({logs}));
 
+// logs a given message together with the current timestamp
 function log(message) {
     const timestamp = new Date().toISOString();
     const logg = `[${timestamp}] ${message}`;
@@ -105,6 +106,7 @@ function log(message) {
     logs.push(logg);
 }
 
+// adds a player to the client list
 function addPlayer(ip, port, guid, name) {
   const player = {
     ip,
@@ -118,6 +120,7 @@ function addPlayer(ip, port, guid, name) {
   log(`Got a new player: ${player.name} (${player.guid}) at ${player.ip}:${player.port}`);
 }
 
+// connect to another node
 function connect(ip, port) {
   log(`Connecting to ${ip}:${port}`);
 
@@ -149,6 +152,7 @@ function connect(ip, port) {
   });
 }
 
+// disconnect from all known clients
 function disconnect() {
   clients.forEach(c => {
     log(`Sending a notification of disconnecting to ${c.ip}:${c.port}`);
@@ -158,6 +162,7 @@ function disconnect() {
   });
 }
 
+// messaging tests
 async function testMessaging(size) {
   if (clients.length == 0) {
     console.log(`No clients connected`);
@@ -187,6 +192,7 @@ async function testMessaging(size) {
   console.log(`Average request time: ${timesSum/successfulRequests} ms`);
 }
 
+// send our score to all known clients
 function sendScore(score) {
   clients.forEach(c => {
     log(`Sending score to ${c.ip}:${c.port}`);
@@ -196,6 +202,7 @@ function sendScore(score) {
   });
 }
 
+// more messagins tests
 async function testMessaging() {
   if (clients.length == 0) {
     console.log(`No clients connected`);
@@ -222,6 +229,7 @@ async function testMessaging() {
   console.log(`Average request time: ${timesSum/successfulRequests} ms`);
 }
 
+// play a round of our game
 function playGame() {
   const die1 = Math.floor(Math.random() * 6) + 1;
   const die2 = Math.floor(Math.random() * 6) + 1;
@@ -229,6 +237,7 @@ function playGame() {
   return die1 + die2;
 }
 
+// print the scores we know of
 function printScores() {
   // sort the scores and take only the best ten for printing
   let sortedScores = [...scores];
@@ -239,10 +248,12 @@ function printScores() {
   console.log(sortedScores.map(s => `${i < 9 ? ' ' : ''}${++i}. ${s.score}${s.score < 10 ? ' ' : ''} (${s.name})`).join('\n'));
 }
 
+// print the players we know of
 function printPlayers() {
   console.log(clients.map(c => c.name).join('\n'));
 }
 
+// print our logs
 function printLogs() {
   console.log(logs.join('\n'));
 }
