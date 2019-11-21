@@ -239,6 +239,14 @@ function printScores() {
   });
 }
 
+function printPlayers() {
+  console.log(clients.map(c => c.name).join('\n'));
+}
+
+function printLogs() {
+  console.log(logs.join('\n'));
+}
+
 function main() {
   readline.question('> ', function (command) {
     switch (command) {
@@ -248,6 +256,12 @@ function main() {
       break;
     case 'scores':
       printScores();
+      break;
+    case 'players':
+      printPlayers();
+      break;
+    case 'logs':
+      printLogs();
       break;
     case 'disconnect':
       disconnect();
