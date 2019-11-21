@@ -230,13 +230,13 @@ function playGame() {
 }
 
 function printScores() {
+  // sort the scores and take only the best ten for printing
   let sortedScores = [...scores];
   sortedScores.sort((a, b) => b.score - a.score);
   sortedScores = sortedScores.slice(0, 10);
   let i = 0;
-  sortedScores.forEach(s => {
-    console.log(`${i < 9 ? ' ' : ''}${++i}. ${s.score}${s.score < 10 ? ' ' : ''} (${s.name})`);
-  });
+
+  console.log(sortedScores.map(s => `${i < 9 ? ' ' : ''}${++i}. ${s.score}${s.score < 10 ? ' ' : ''} (${s.name})`).join('\n'));
 }
 
 function printPlayers() {
